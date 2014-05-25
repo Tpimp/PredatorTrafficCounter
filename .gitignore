@@ -12,6 +12,7 @@
 
 # Qt-es
 
+./android-build/*
 /.qmake.cache
 /.qmake.stash
 *.pro.user
