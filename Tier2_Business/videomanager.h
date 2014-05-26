@@ -13,7 +13,7 @@ class VideoManager : public QObject
 {
     Q_OBJECT
 public:
-    explicit VideoManager(QObject *parent = 0);
+    explicit VideoManager(QString &video_directory, QObject *parent = 0);
     VideoSourceDataObject* getVideoObject(QString video_name);
 
 signals:

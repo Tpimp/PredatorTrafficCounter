@@ -1,8 +1,8 @@
 #include "videomanager.h"
 #include <QFile>
 
-VideoManager::VideoManager(QObject *parent) :
-    QObject(parent)
+VideoManager::VideoManager(QString & video_directory, QObject *parent) :
+    QObject(parent), mVideoDirectory(video_directory)
 {}
 
 

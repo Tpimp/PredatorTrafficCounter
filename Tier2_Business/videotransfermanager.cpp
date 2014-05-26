@@ -27,9 +27,10 @@ VideoTransferManager::VideoTransferManager(QObject *parent) :
 
 
 
-void    VideoTransferManager::attemptConnectionToHost(QString host_ip)
+void    VideoTransferManager::attemptConnectionToHost(QString host_ip, int port)
 {
-    mSocket.connectToHost(QHostAddress(host_ip),8889);
+    qDebug() << host_ip << port;
+    mSocket.connectToHost(QHostAddress(host_ip),port);
 }
 
 void    VideoTransferManager::connectedToHost()

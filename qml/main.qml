@@ -22,7 +22,6 @@ ApplicationWindow {
                     id: connectView
                     height: appWindow.height
                     width: appWindow.width
-                    color:"blue"
                     anchors.verticalCenter: parent.verticalCenter
                 }
 

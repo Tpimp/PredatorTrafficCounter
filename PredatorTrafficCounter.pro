@@ -7,8 +7,6 @@ SOURCES += main.cpp \
     Tier2_Business/videosourcedataobject.cpp \
     Tier2_Business/videotransfermanager.cpp \
     Tier2_Business/videowritethread.cpp \
-    Tier3_Persistence/applicationsettingsreader.cpp \
-    Tier3_Persistence/applicationsettingswriter.cpp \
     Tier3_Persistence/videoinforeader.cpp \
     Tier3_Persistence/videolocator.cpp \
     Tier3_Persistence/videowriter.cpp
@@ -34,8 +32,6 @@ HEADERS += \
     Tier2_Business/videosourcedataobject.h \
     Tier2_Business/videotransfermanager.h \
     Tier2_Business/videowritethread.h \
-    Tier3_Persistence/applicationsettingsreader.h \
-    Tier3_Persistence/applicationsettingswriter.h \
     Tier3_Persistence/videoinforeader.h \
     Tier3_Persistence/videolocator.h \
     Tier3_Persistence/videowriter.h

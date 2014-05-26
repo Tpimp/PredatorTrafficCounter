@@ -33,7 +33,7 @@ signals:
 
 public slots:
 
-    void    attemptConnectionToHost(QString host_ip);
+    void    attemptConnectionToHost(QString host_ip, int port = 8889);
     void    connectedToHost();
     void    connectionLost();
     void    fetchVideoListFromServer();
