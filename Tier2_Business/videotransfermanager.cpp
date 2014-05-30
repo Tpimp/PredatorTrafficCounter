@@ -204,3 +204,17 @@ void VideoTransferManager::videoDownloadFinished(QString name)
         //Clean up and exit the VideoWriter Thread
     emit downloadFinished(name);
 }
+
+VideoTransferManager::~VideoTransferManager()
+{
+    mSocket.flush();
+    mSocket.disconnectFromHost();
+    mSocket.close();
+    mHostInfo = QHostInfo();
+    mHostPort = 0;
+    mState = IDLE;
+    mTransferItemName.clear();
+    mVideoDirectory.clear();
+    mMessageRecieved.clear();
+    mIncomingMessage.clear();
+}

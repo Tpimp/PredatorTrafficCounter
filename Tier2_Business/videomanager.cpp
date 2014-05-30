@@ -1,8 +1,8 @@
 #include "videomanager.h"
 #include <QFile>
 
-VideoManager::VideoManager(QString & video_directory, QObject *parent) :
-    QObject(parent), mVideoDirectory(video_directory)
+VideoManager::VideoManager(QString & video_directory, QQmlContext *context, VideoTransferManager *video_manager, QObject *parent) :
+    QObject(parent), mVideoDirectory(video_directory), mContext(context), mTransferManager(video_manager)
 {}
 
 
@@ -18,13 +18,15 @@ void VideoManager::addVideosFromLocal(QStringList videos)
         {
             video = new VideoSourceDataObject(video_name,this);
             video->setLocal(true);
-            mVideoObjects.append(video);
+            mVideoObjects.append(qobject_cast<QObject *>(video));
         }
         else
         {
             video->setLocal(true);
         }
     }
+    mContext->setContextProperty("videoList",QVariant::fromValue(mVideoObjects));
+    emit videoObjectsChanged(mVideoObjects);
 }
 
 
@@ -38,41 +40,76 @@ void VideoManager::addVideosFromServer(QStringList videos)
         {
             video = new VideoSourceDataObject(video_name,this);
             video->setOnServer(true);
-            mVideoObjects.append(video);
+            mVideoObjects.append(qobject_cast<QObject *>(video));
         }
         else
         {
             video->setOnServer(true);
         }
     }
-
+    mContext->setContextProperty("videoList",QVariant::fromValue(mVideoObjects));
+    emit videoObjectsChanged(mVideoObjects);
 }
 
+
+
+
+void VideoManager::fetchAllVideoInfo()
+{
+        mFetchingAll = true;
+        mCurrentIndex = 0;
+        QTimer::singleShot(1500, this, SLOT(fetchNextInfo()));
+}
+
+
+void VideoManager::fetchNextInfo()
+{
+    if(mCurrentIndex <  mVideoObjects.length())
+    {
+        VideoSourceDataObject *video;
+        video = reinterpret_cast<VideoSourceDataObject*>(mVideoObjects[mCurrentIndex]);
+        QString video_name(video->videoName());
+        mFetchingAll = true;
+        mCurrentIndex++;
+        mTransferManager->fetchVideoInfoFromServer(video_name);
+    }
+
+}
 
 VideoSourceDataObject *VideoManager::getVideoObject(QString video_name)
 {
     VideoSourceDataObject *ptr(nullptr);
 
-    foreach(VideoSourceDataObject * video, mVideoObjects)
+    foreach(QObject * qptr, mVideoObjects)
     {
-        if(video->videoName().compare(video_name))
+        VideoSourceDataObject * video = reinterpret_cast<VideoSourceDataObject *>(qptr);
+        if(video->videoName() == video_name)
         {
             ptr = video;
-            goto EXIT_GET_VID_OBJ;
+            break;
         }
     }
 
-    EXIT_GET_VID_OBJ:
     return ptr;
 }
 
 void VideoManager::updateVideoInfo(QString video_name, QString video_info)
 {
-    foreach(VideoSourceDataObject * video, mVideoObjects)
+    for(int index = 0; index < mVideoObjects.length(); ++index)
     {
-        if(video->videoName().compare(video_name))
+        VideoSourceDataObject * video =
+                reinterpret_cast<VideoSourceDataObject *>(mVideoObjects[index]);
+        if(video->videoName() == video_name)
         {
+            qDebug() << "Recieved Info for Video" << video_name;
             video->setVideoInfo(video_info);
+            mContext->setContextProperty("videoList",QVariant::fromValue(mVideoObjects));
+            emit videoInfoUpdated(video_name,index, video_info);
+            if(mFetchingAll)
+            {
+                QTimer::singleShot(1500, this, SLOT(fetchNextInfo()));
+            }
+            break;
         }
     }
 
@@ -85,5 +122,18 @@ void VideoManager::removeVideoFromLocal(QString video_name)
     if(video.exists())
     {
         video.remove(); // delete the video if it does
+    }
+}
+
+VideoManager::~VideoManager()
+{
+    if(!mVideoObjects.isEmpty())
+    {
+        QObject * current_ptr;
+        while(!mVideoObjects.isEmpty())
+        {
+            current_ptr = mVideoObjects.takeLast();
+            delete current_ptr;
+        }
     }
 }

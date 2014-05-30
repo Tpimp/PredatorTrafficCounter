@@ -32,8 +32,6 @@ void VideoWriteThread::run()
     connect(&videowriter,SIGNAL(fileTransferComplete()),this,SLOT(quit()));
     int data_wrote(hostconnection.write(messageout.data(),messageout.size()));
 
-    // make signal and slot connections for objecs
-
     // begin event loop
 
     exec();

@@ -8,10 +8,10 @@ class VideoSourceDataObject : public QObject
     Q_OBJECT
     
     // Define the data members for QML interface (Class Properties)
-    Q_PROPERTY(QString videoname READ videoName WRITE setVideoName)
-    Q_PROPERTY(bool    local     READ isLocal   WRITE setLocal)
-    Q_PROPERTY(bool    servable  READ onServer  WRITE setOnServer)
-    Q_PROPERTY(QString videoinfo READ videoInfo WRITE setVideoInfo)
+    Q_PROPERTY(QString videoname READ videoName WRITE setVideoName NOTIFY nameChanged)
+    Q_PROPERTY(bool    local     READ isLocal   WRITE setLocal NOTIFY localityChanged)
+    Q_PROPERTY(bool    servable  READ onServer  WRITE setOnServer NOTIFY servableChanged)
+    Q_PROPERTY(QString videoinfo READ videoInfo WRITE setVideoInfo NOTIFY infoChanged)
     Q_PROPERTY(bool    downloading READ isDownloading
                WRITE setDownloading NOTIFY startedDownloading)
     Q_PROPERTY(int     amountcomplete READ amountComplete
@@ -53,6 +53,10 @@ public:
 
 signals:
     // Callback signals
+    void nameChanged();
+    void infoChanged();
+    void localityChanged();
+    void servableChanged();
     void startedDownloading();
     void amountCompleteUpdated();
 

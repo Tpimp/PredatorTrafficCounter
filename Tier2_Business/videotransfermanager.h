@@ -21,7 +21,8 @@ class VideoTransferManager : public QObject
     Q_OBJECT
 public:
     explicit VideoTransferManager(QObject *parent = 0);
-
+    ~VideoTransferManager();
+    void clearConnection();
 signals:
 
     void connectedForTransfer();
@@ -48,6 +49,7 @@ protected:
 
 
 private:
+
     QHostInfo           mHostInfo;
     int                 mHostPort;
     QTcpSocket          mSocket;
@@ -56,6 +58,8 @@ private:
     QString             mVideoDirectory;
     QByteArray          mMessageRecieved;
     QByteArray          mIncomingMessage;
+    int                 mCurrentRecordIndex = 0;
+
 };
 
 #endif // VIDEOTRANSFERMANAGER_H

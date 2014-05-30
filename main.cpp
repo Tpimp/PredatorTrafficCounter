@@ -1,16 +1,14 @@
 #include <QtGui/QScreen>
 #include <QtGui/QGuiApplication>
 #include <QQmlContext>
-#include <QQmlEngine>
 #include <QQmlComponent>
 #include <QScreen>
-#include <QQmlApplicationEngine>
 #include <QObject>
 #include "Tier2_Business/videomanager.h"
 #include "Tier2_Business/videotransfermanager.h"
 #include <QDir>
 #include <QObject>
-
+#include <QQmlApplicationEngine>
 int main(int argc, char *argv[])
 {
   //  QApplication app(argc, argv);
@@ -24,7 +22,7 @@ int main(int argc, char *argv[])
     QString display_mode("FullScreen");
 
 
-    show_expanded = false; // Uncomment for FULLSCREEN
+   // show_expanded = false; // Uncomment for FULLSCREEN
 
     if(!show_expanded)
     {
@@ -46,16 +44,14 @@ int main(int argc, char *argv[])
 
     //Create the VideoManager classes
     QString vid_directory(QDir::homePath() +  "\\Videos"); // to be re-implemented as Application Settings
-    VideoManager  video_manager(vid_directory, &app ); // video manager will be alive the life of the program
-    VideoTransferManager video_transfer_manager(&app);
 
+    VideoTransferManager video_transfer_manager(&app);
+    VideoManager  video_manager(vid_directory,engine.rootContext(), &video_transfer_manager, &app ); // video manager will be alive the life of the program
     // Connect their signal and slots
     QObject::connect(&video_transfer_manager, &VideoTransferManager::videoListFetched, &video_manager, &VideoManager::addVideosFromServer);
     QObject::connect(&video_transfer_manager, &VideoTransferManager::recievedVideoInfo, &video_manager, &VideoManager::updateVideoInfo);
 
     // add the VideoTransferManager and VideoManagers tothe root object
-
-
 
     // add external variable references to QMLEngine
     engine.rootContext()->setContextProperty("ScreenWidth",screen_width);
