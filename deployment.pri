@@ -2,6 +2,7 @@ android-no-sdk {
     target.path = /data/user/qt
     export(target.path)
     INSTALLS += target
+
 } else:android {
     x86 {
         target.path = /libs/x86
@@ -23,5 +24,10 @@ android-no-sdk {
     }
     INSTALLS += target
 }
+
+
+folder_01.source = config
+folder_01.target = config
+DEPLOYMENTFOLDERS += folder_01
 
 export(INSTALLS)

@@ -58,7 +58,7 @@ void VideoManager::fetchAllVideoInfo()
 {
         mFetchingAll = true;
         mCurrentIndex = 0;
-        QTimer::singleShot(1500, this, SLOT(fetchNextInfo()));
+        QTimer::singleShot(100, this, SLOT(fetchNextInfo()));
 }
 
 
@@ -107,7 +107,7 @@ void VideoManager::updateVideoInfo(QString video_name, QString video_info)
             emit videoInfoUpdated(video_name,index, video_info);
             if(mFetchingAll)
             {
-                QTimer::singleShot(1500, this, SLOT(fetchNextInfo()));
+                QTimer::singleShot(100, this, SLOT(fetchNextInfo()));
             }
             break;
         }

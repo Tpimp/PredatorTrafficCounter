@@ -1,0 +1,16 @@
+## Comments are ignored - Use Double # for a comment
+## White space is also ignored (BLANK LINES) - File cannot be repaired from manual corruption.
+## Suggestions is to leave this file alone. Edit settings through the GUI
+## Known Drones
+
+## Drone Definition Prototype
+## Drone Name = "Name"
+## Drone Owner = "Owners Name"
+## Drone IP    = "ipip.ipip.ip.ip"
+## Drone Type = "DroneType"
+
+Drone Name = "OIT-Prototype-PRDTR-X1"
+Drone Owner = "OIT Civil Engineering Dept."
+Drone IP = "192.168.3.115"
+Drone Type = "Proto-X-Rev1"
+

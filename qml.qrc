@@ -2,9 +2,17 @@
     <qresource prefix="/">
         <file alias="main.qml">qml/main.qml</file>
         <file>qml/ConnectView.qml</file>
+        <file>qml/DroneItem.qml</file>
     </qresource>
     <qresource prefix="/images">
         <file>predatordrone.png</file>
         <file>ConnectBackground.png</file>
+        <file>busy.gif</file>
+        <file>busy1.gif</file>
+        <file>Proto-X-Rev1.png</file>
+    </qresource>
+    <qresource prefix="/config">
+        <file>config/KnownDrones.txt</file>
+        <file>config/predator_config.cfg</file>
     </qresource>
 </RCC>

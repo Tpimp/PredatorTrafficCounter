@@ -1,22 +1,47 @@
 import QtQuick 2.2
 import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.0
-
+import QtGraphicalEffects 1.0
+import "qrc:/qml"
 Rectangle {
     color: "#3d3d3e"
     id:connectView
     property bool connectedToCopter: false
     property string currentConnection: ""
-    Image
-    {
-        anchors.fill: parent
-        source:"qrc:/images/ConnectBackground.png"
-        id: backgroundImage
-        smooth: true
-        visible: !connectedToCopter
-        fillMode: Image.Stretch
+    property bool attemptingToConnect: false
+
+
+    function showVideoView(){
+        backgroundImage.visible = false;
+        connectMessage.visible = false;
+        droneImage.visible = false;
+        addToListButton.visible = false;
+        droneView.visible = false;
+        connectButton.visible = false;
+        inputRect.visible = false;
+        videoView.visible = true
 
     }
+    function showConnectView(){
+        backgroundImage.visible = true;
+        connectMessage.visible = true;
+        droneImage.visible = true;
+        connectButton.visible = true;
+        inputRect.visible = true;
+        addToListButton.visible = true;
+        videoView.visible = false;
+        droneView.visible = true;
+
+    }
+
+    function disableInputConnectView(){
+        connectView.enabled = false;
+    }
+    function enableInputConnectView(){
+        connectView.enabled = true;
+    }
+
+
 
     // Define Connections to C++ objects
     Connections {
@@ -24,11 +49,28 @@ Rectangle {
             onConnectedForTransfer:{
                 statusText.text = ("Now Connected to " + currentConnection);
                 connectedToCopter = true;
+                showVideoView();
+                attemptingToConnect = false;
+                disableInputConnectView();
+                busyIndicator.source = "qrc:/images/busy.gif";
                 VideoTransferManager.fetchVideoListFromServer();
             }
             onConnectionFailed:{
-                statusText.text = ("Connection to " + currentConnection + " has failed.");
-                //connectedToCopter = false;
+                if(attemptingToConnect)
+                {
+                    statusText.text = ("Connection attempt failed");
+                }
+                else
+                {
+                    statusText.text = ("Connection to " + currentConnection + " failed.");
+                }
+
+                attemptingToConnect = false;
+                enableInputConnectView();
+                busyRect.visible = false;
+                connectedToCopter = false;
+                showConnectView();
+
             }
 
         }
@@ -37,22 +79,41 @@ Rectangle {
         target: VideoManager
         onVideoInfoUpdated:{
             videoView.currentIndex = index;
-            statusText.text = "Fetched info " + (index+1) + " of " + videoView.count;
+            statusText.text = "Fetching info " + (index+1) + " of " + videoView.count;
+            if((videoView.currentIndex + 1) == videoView.count )
+            {
+                statusText.text = "All Video Info Fetched";
+                enableInputConnectView();
+                busyRect.visible = false;
+            }
         }
         onVideoObjectsChanged:{
+            statusText.text = "Fetching video info for all videos...";
             VideoManager.fetchAllVideoInfo();
         }
     }
 
+    Image
+    {
+        anchors.fill: parent
+        source:"qrc:/images/ConnectBackground.png"
+        id: backgroundImage
+        smooth: true
+        visible: true
+        fillMode: Image.Stretch
+
+    }
     Text{
-        id:titleText
+        id:connectMessage
         anchors.bottom: inputRect.top
-        anchors.horizontalCenter: inputRect.horizontalCenter
         anchors.bottomMargin: 4
         anchors.topMargin:  20
+        anchors.left: parent.left
+        anchors.right: addToListButton.left
         color: "white"
-        font.pixelSize: 36
-        visible: !connectedToCopter
+        font.pixelSize: (width / text.length) +8
+        visible: true
+        horizontalAlignment: Text.AlignHCenter
         text: "Please Connect to a Predator QuadCopter..."
     }
 
@@ -62,7 +123,6 @@ Rectangle {
         width: parent.width * .40
         height: width * .8
         smooth: true
-        visible: !connectedToCopter
         x:15
         y:-80
         //anchors.margins: -10
@@ -82,23 +142,22 @@ Rectangle {
         border.color: "yellow"
         border.width: 2
         clip: true
-        visible: !connectedToCopter
+        visible: true
         anchors.topMargin: -40
         TextInput{
             id: ipString
             anchors.fill: parent
+            anchors.margins: 2
             text:"192.168.3.115"
             horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignBottom
-            font.family: "Niagara Engraved"
+            verticalAlignment: Text.AlignVCenter
             font.pixelSize: parent.height * .85
         }
     }
     Rectangle{
-        id:addRect
+        id:addToListButton
         anchors.left: inputRect.right
         width:inputRect.width/2
-        visible: !connectedToCopter
         anchors.verticalCenter: inputRect.verticalCenter
         color: "blue"
         height: inputRect.height
@@ -106,13 +165,14 @@ Rectangle {
         border.color: "black"
         anchors.margins: 4
         radius: 2
+        visible: true
         MouseArea{
             anchors.fill: parent
             onPressed:{
-                addRect.color = "orange";
+                addToListButton.color = "orange";
             }
             onReleased: {
-                addRect.color = "blue";
+                addToListButton.color = "blue";
             }
         }
 
@@ -126,9 +186,9 @@ Rectangle {
         }
     }
     Rectangle{
-        anchors.left: addRect.right
+        id:connectButton
+        anchors.left: addToListButton.right
         anchors.right: parent.right
-        visible: !connectedToCopter
         anchors.verticalCenter: inputRect.verticalCenter
         color: "blue"
         height: inputRect.height
@@ -136,14 +196,21 @@ Rectangle {
         border.color: "black"
         anchors.margins: 4
         radius: 2
+        visible: true
         MouseArea{
             anchors.fill: parent
             onPressed: {
+
+                    statusText.text = "Attempting to connect to " + ipString.text;
+                    attemptingToConnect = true;
+                    disableInputConnectView();
+                    busyIndicator.source = "qrc:/images/busy1.gif";
+                    busyRect.visible = true;
                     VideoTransferManager.attemptConnectionToHost(ipString.text);
                     currentConnection = ipString.text;
             }
             onReleased: {
-                addRect.color = "blue";
+                connectButton.color = "blue";
             }
         }
 
@@ -158,8 +225,22 @@ Rectangle {
     }
 
     ListView {
+        id: droneView
+        visible: true
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: connectButton.bottom
+        anchors.bottom: statusBarConnect.top
+        orientation: ListView.Vertical
+        flickableDirection: Flickable.VerticalFlick
+        model: knownDrones
+        highlightFollowsCurrentItem: true
+        focus: true
+        delegate: DroneItem{}
+    }
+    ListView {
         id: videoView
-        visible: connectedToCopter
+        visible: false
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top
@@ -188,7 +269,7 @@ Rectangle {
             }
             // TODO: Turn download button into "Action Menu" - provide interface for video actions
             Rectangle{
-                id:downloadButton
+                id:actionButton
                 color: "brown"
                 width: parent.width/6
                 height: parent.height/10
@@ -351,6 +432,33 @@ Rectangle {
 
         }
     }
+    Rectangle{
+        id:busyRect
+        color: "black"
+        opacity: 0.85
+        anchors.top: parent.top
+        anchors.bottom: statusBarConnect.top
+        anchors.left: parent.left
+        anchors.right: parent.right
+        z: parent.z + 5
+        AnimatedImage{
+            id: busyIndicator
+            width: parent.width/6
+            height: width
+            playing: busyRect.visible
+            source: "qrc:/images/busy1.gif"
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.verticalCenter: parent.verticalCenter
+        }
+        antialiasing: true
+        FastBlur {
+            anchors.fill: busyRect
+            source: busyRect
+            radius: 32
+        }
+        visible: false
+    }
+
     StatusBar{
         id:statusBarConnect
         height:80

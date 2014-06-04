@@ -13,44 +13,64 @@
 #include <QListWidgetItem>
 #include <QFileDialog>
 #include <QtDebug>
+#include <QBuffer>
+#include <QImageWriter>
 
 VideoTransferManager::VideoTransferManager(QObject *parent) :
     QObject(parent), mHostInfo(QHostInfo()), mState(IDLE),
-    mVideoDirectory(QDir::homePath())
+    mVideoDirectory(QDir::homePath()), mWatchdogTimer(this)
 {
     mSocket.setReadBufferSize(80000000);
     connect(&mSocket,SIGNAL(connected()),this,SLOT(connectedToHost()));
     connect(&mSocket,SIGNAL(readyRead()),this,SLOT(readData()));
+    connect(&mWatchdogTimer, &QTimer::timeout, this, &VideoTransferManager::failedToConnectToHost);
     connect(&mSocket,SIGNAL(disconnected()),this,SLOT(connectionLost()));
     connect(&mSocket,SIGNAL(readChannelFinished()),this,SLOT(readFinishing()));
 }
 
 
 
-void    VideoTransferManager::attemptConnectionToHost(QString host_ip, int port)
+void VideoTransferManager::attemptConnectionToHost(QString host_ip, int port)
 {
     qDebug() << host_ip << port;
+    // set watchdog for one minute
+    mWatchdogTimer.setInterval(45000);
+    mWatchdogTimer.start();
     mSocket.connectToHost(QHostAddress(host_ip),port);
+
 }
 
-void    VideoTransferManager::connectedToHost()
+void VideoTransferManager::connectedToHost()
 {
+    mWatchdogTimer.stop();
     emit connectedForTransfer();
 }
 
-void    VideoTransferManager::connectionLost()
+
+void VideoTransferManager::checkConnectionReady()
 {
-    emit connectionFailed();
     if(mSocket.state() == QTcpSocket::UnconnectedState)
        mSocket.connectToHost(mSocket.peerAddress(),8889);
     if(!mSocket.isOpen())
        mSocket.open(QIODevice::ReadWrite);
 }
 
-void    VideoTransferManager::fetchVideoListFromServer()
+void  VideoTransferManager::connectionLost()
 {
-    // check connection lost
-    connectionLost();
+    emit connectionFailed();
+    checkConnectionReady();
+}
+
+void VideoTransferManager::failedToConnectToHost()
+{
+    mSocket.disconnectFromHost();
+    mSocket.close();
+    emit connectionFailed();
+}
+
+void VideoTransferManager::fetchVideoListFromServer()
+{
+    checkConnectionReady();
     QJsonDocument doc;
     QJsonArray    array;
     QJsonObject funcname;
@@ -83,8 +103,8 @@ void    VideoTransferManager::fetchVideoFromServer(QString video_name,qint64 exp
 
 void  VideoTransferManager::fetchVideoInfoFromServer(QString video_name)
 {
-    // Ensure Connection if available
-    connectionLost();
+
+    checkConnectionReady();
 
     // Create JSON Objects for encoding to string message
     QJsonDocument doc;
@@ -128,7 +148,7 @@ void VideoTransferManager::processMessage()
         case CONNECTED: {break;}
         case RECEIVING_LIST:
         {
-            qDebug() << mMessageRecieved;
+         //  qDebug() << mMessageRecieved;
 
             // unpack the Video List
             QJsonDocument doc(QJsonDocument::fromJson(mMessageRecieved));
@@ -153,6 +173,23 @@ void VideoTransferManager::processMessage()
             // Get the Video name and info
             QJsonValue  name(object["VideoName"]);
             QJsonValue  info(object["VideoInfo"]);
+            QJsonValue  thumb(object["VideoThumb"]);
+            QVariant    varthumb(thumb.toVariant());
+            QByteArray ba(varthumb.toByteArray());
+            QImage image(QSize(1280,720),QImage::Format_ARGB32);
+            image.loadFromData(ba,"PNG");
+            QImageWriter  imwriter(QDir::homePath()+"\\Videos\\thumbnail7.png");
+            qDebug() << QDir::homePath()+"\\Videos\\thumbnail.png";
+            //qDebug() << image;
+            //imwriter.
+            if(imwriter.write(image))
+            {
+                qDebug() << "Failed to save thumbnail.";
+            }
+            else
+            {
+                qDebug() << "Saved the file off correctly";
+            }
 
             // notify the listening objects that the video info was recieved
             // If the JSON Values are not strings they will instead return the error string
@@ -176,7 +213,7 @@ void  VideoTransferManager::readData()
     {
         mMessageRecieved.clear();
         mMessageRecieved.append(mIncomingMessage.left(index+1),index+1);
-        qDebug() << "Message Recieved: " << mMessageRecieved;
+       // qDebug() << "Message Recieved: " << mMessageRecieved;
         mMessageRecieved.remove(0,1);
         mMessageRecieved.chop(1);
         processMessage();

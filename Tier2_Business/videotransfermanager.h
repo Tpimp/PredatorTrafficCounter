@@ -5,6 +5,7 @@
 #include <QHostInfo>
 #include <QTcpSocket>
 #include <QList>
+#include <QTimer>
 
 enum TransferState
 {
@@ -34,18 +35,20 @@ signals:
 
 public slots:
 
-    void    attemptConnectionToHost(QString host_ip, int port = 8889);
-    void    connectedToHost();
-    void    connectionLost();
-    void    fetchVideoListFromServer();
-    void    fetchVideoFromServer(QString video_name,qint64 expected_file_size);
-    void    fetchVideoInfoFromServer(QString video_name);
-    void    readData();
-    void    readFinishing();
-    void    videoDownloadFinished(QString name);
+    void attemptConnectionToHost(QString host_ip, int port = 8889);
+    void connectedToHost();
+    void connectionLost();
+    void failedToConnectToHost();
+    void fetchVideoListFromServer();
+    void fetchVideoFromServer(QString video_name,qint64 expected_file_size);
+    void fetchVideoInfoFromServer(QString video_name);
+    void readData();
+    void readFinishing();
+    void videoDownloadFinished(QString name);
 
 protected:
-    void    processMessage();
+    void processMessage();
+    void checkConnectionReady();
 
 
 private:
@@ -59,6 +62,7 @@ private:
     QByteArray          mMessageRecieved;
     QByteArray          mIncomingMessage;
     int                 mCurrentRecordIndex = 0;
+    QTimer              mWatchdogTimer;
 
 };
 
