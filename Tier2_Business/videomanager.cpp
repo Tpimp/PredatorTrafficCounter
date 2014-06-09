@@ -1,7 +1,7 @@
 #include "videomanager.h"
 #include <QFile>
-
-VideoManager::VideoManager(QString & video_directory, QQmlContext *context, VideoTransferManager *video_manager, QObject *parent) :
+#include <QDir>
+VideoManager::VideoManager(QString & video_directory, QQmlContext *context, FileTransferManager *video_manager, QObject *parent) :
     QObject(parent), mVideoDirectory(video_directory), mContext(context), mTransferManager(video_manager)
 {}
 
@@ -58,7 +58,7 @@ void VideoManager::fetchAllVideoInfo()
 {
         mFetchingAll = true;
         mCurrentIndex = 0;
-        QTimer::singleShot(100, this, SLOT(fetchNextInfo()));
+        QTimer::singleShot(30, this, SLOT(fetchNextInfo()));
 }
 
 
@@ -101,7 +101,13 @@ void VideoManager::updateVideoInfo(QString video_name, QString video_info)
                 reinterpret_cast<VideoSourceDataObject *>(mVideoObjects[index]);
         if(video->videoName() == video_name)
         {
-            qDebug() << "Recieved Info for Video" << video_name;
+            //qDebug() << "Recieved Info for Video" << video_name;
+            //qDebug() << "Writing video info to disk " << video_name << "_info.txt";
+            QString video_info_path(mVideoDirectory + QDir::separator() + video_name + "_info.txt");
+            QFile video_info_file(video_info_path);
+            video_info_file.open(QFile::WriteOnly);
+            video_info_file.write(video_info.toLocal8Bit());
+            video_info_file.close();
             video->setVideoInfo(video_info);
             mContext->setContextProperty("videoList",QVariant::fromValue(mVideoObjects));
             emit videoInfoUpdated(video_name,index, video_info);

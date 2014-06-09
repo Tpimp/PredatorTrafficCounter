@@ -8,14 +8,15 @@ ApplicationWindow {
     height: ScreenHeight
     visible: true
 
-    visibility: DisplayMode
 
     title: qsTr("Predator Traffic Counter")
 
     Flickable{
+
         anchors.fill: parent
         contentWidth: parent.width*2
         contentHeight: parent.height
+
         Row {
             anchors.fill: parent
                 ConnectView{
@@ -29,10 +30,22 @@ ApplicationWindow {
                     id: greenScreen
                     height: appWindow.height
                     width: appWindow.width
-                    color: "green"
+                    color: "red"
                     anchors.verticalCenter: parent.verticalCenter
                 }
         }
+        SettingsView{
+            id: settingsView
+            anchors.top: parent.top
+            anchors.bottom: parent.top
+            anchors.bottomMargin: connectView.statusBar.height
+            anchors.left: parent.left
+            anchors.right: parent.right
+            z: parent.z + 10
+            visible: false
+        }
+
+        // snap to the module current most visible
         onMovementEnded:  {
             if(visibleArea.xPosition > .24)
             {
@@ -45,6 +58,7 @@ ApplicationWindow {
             }
 
         }
+        // perform animation on x
         NumberAnimation on contentX { running:false; id:slideRight; to: greenScreen.x; duration: 200  }
         NumberAnimation on contentX { running:false; id:slideLeft; to: 0; duration: 200  }
     }

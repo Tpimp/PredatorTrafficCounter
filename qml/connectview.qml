@@ -2,6 +2,8 @@ import QtQuick 2.2
 import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.0
 import QtGraphicalEffects 1.0
+import QtQuick.Controls.Styles 1.1
+
 import "qrc:/qml"
 Rectangle {
     color: "#3d3d3e"
@@ -9,7 +11,7 @@ Rectangle {
     property bool connectedToCopter: false
     property string currentConnection: ""
     property bool attemptingToConnect: false
-
+    property alias statusBar: statusBarConnect
 
     function showVideoView(){
         backgroundImage.visible = false;
@@ -41,7 +43,13 @@ Rectangle {
         connectView.enabled = true;
     }
 
-
+    function checkIfConfigurationSuccessful()
+    {
+        if(SettingsManager.drone_list == "" ||
+           SettingsManager.video_directory == "")
+            return false;
+        return true;
+    }
 
     // Define Connections to C++ objects
     Connections {
@@ -72,6 +80,9 @@ Rectangle {
                 showConnectView();
 
             }
+            onDownloadPercentChanged:{ // (QString name,int percent)
+               // videoView
+            }
 
         }
     Connections
@@ -79,11 +90,12 @@ Rectangle {
         target: VideoManager
         onVideoInfoUpdated:{
             videoView.currentIndex = index;
-            statusText.text = "Fetching info " + (index+1) + " of " + videoView.count;
+            statusText.text = "Fetching info " + (index) + " of " + videoView.count;
             if((videoView.currentIndex + 1) == videoView.count )
             {
                 statusText.text = "All Video Info Fetched";
                 enableInputConnectView();
+                //VideoTransferManager.
                 busyRect.visible = false;
             }
         }
@@ -200,14 +212,20 @@ Rectangle {
         MouseArea{
             anchors.fill: parent
             onPressed: {
+                    if(checkIfConfigurationSuccessful())
+                    {
+                        statusText.text = "Attempting to connect to " + ipString.text;
+                        attemptingToConnect = true;
+                        disableInputConnectView();
+                        busyIndicator.source = "qrc:/images/busy1.gif";
+                        busyRect.visible = true;
+                        VideoTransferManager.attemptConnectionToHost(ipString.text);
+                        currentConnection = ipString.text;
+                    }
+                    else
+                    {
 
-                    statusText.text = "Attempting to connect to " + ipString.text;
-                    attemptingToConnect = true;
-                    disableInputConnectView();
-                    busyIndicator.source = "qrc:/images/busy1.gif";
-                    busyRect.visible = true;
-                    VideoTransferManager.attemptConnectionToHost(ipString.text);
-                    currentConnection = ipString.text;
+                    }
             }
             onReleased: {
                 connectButton.color = "blue";
@@ -250,13 +268,16 @@ Rectangle {
         model: videoList
         highlightFollowsCurrentItem: true
         focus: true
+        section.property: "videoname"
+        section.criteria: ViewSection.FullString
+        section.delegate: sectionHeading
+
         delegate: Rectangle {
             id: delItem
             width: parent.width
             border.color: "steelblue"
             border.width: 4
             color: "transparent"
-            radius: parent.width/32
             clip: true
            // anchors.margins: 4
             height: index == videoView.currentIndex ? parent.width * .25:parent.width * .125
@@ -296,14 +317,15 @@ Rectangle {
                     color: "black"
                 }
 
+
             }
             // TODO: Fix display of video info (Flow work well here?)
             Rectangle{
                 anchors.right: locationRect.left
-                anchors.top: videoNameText.bottom
+                anchors.top: parent.top
                 color: "transparent"
                 width:parent.width/4
-                height: parent.height*.8 - videoNameText.height
+                height: parent.height*.8
                 visible: index == videoView.currentIndex ? true:false
                 border.width: 2
                 clip: true
@@ -316,20 +338,6 @@ Rectangle {
                     font.pixelSize: 18
                     horizontalAlignment: Text.AlignLeft
                 }
-            }
-            Text {
-                // anchors.verticalCenter: itemRect.verticalCenter
-                id: videoNameText
-                text: model.modelData.videoname
-                anchors.top: parent.top
-                anchors.right: locationRect.left
-                anchors.left: parent.left
-                anchors.leftMargin: 4
-                font.bold: true
-                color: "white"
-                font.pixelSize: (delItem.width - locationRect.height) / text.length + 2
-                verticalAlignment: Text.AlignVCenter
-                horizontalAlignment: Text.AlignHCenter
             }
             Rectangle{
                 id: locationRect
@@ -428,8 +436,49 @@ Rectangle {
                         border.color: "black"
                     }
                 }
+
+            }
+            ProgressBar{
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                anchors.left: locationRect.left
+                visible: downloading
+                style:ProgressBarStyle {
+                    background: Rectangle {
+                        radius: 2
+                        color: "darkblue"
+                        border.color: "gray"
+                        border.width: 2
+                    }
+                    progress: Rectangle {
+                                color: "lightsteelblue"
+                                border.color: "steelblue"
+                            }
+                }
+                maximumValue: 100
+                minimumValue: 0
+                value: amountcomplete
+
             }
 
+        }
+        section {
+            property: "videoname"
+            criteria: ViewSection.FullString
+
+            delegate: Rectangle {
+                id: sectionHeading
+                width: parent.width
+                height: videoView.height * .125
+                color: "lightsteelblue"
+                radius: width *.25
+                border.width: 2
+                border.color:"steelblue"
+                Text { anchors.horizontalCenter: parent.horizontalCenter
+                    font.pixelSize: parent.height *.8
+                    text: section
+                }
+            }
         }
     }
     Rectangle{
@@ -457,6 +506,7 @@ Rectangle {
             radius: 32
         }
         visible: false
+
     }
 
     StatusBar{
@@ -464,15 +514,60 @@ Rectangle {
         height:80
         anchors.left: parent.left
         anchors.right: parent.right
+        property alias text: statusText
         //anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
         Text{
             id:statusText
-            anchors.fill: parent
+            anchors.left: parent.left
+            anchors.verticalCenter: parent.verticalCenter
+            width: parent.width * .75
             text:"Currently Disconnected..."
-            horizontalAlignment: Text.AlignHCenter
+            horizontalAlignment: Text.AlignLeft
             verticalAlignment:  Text.AlignBottom
             font.pixelSize: parent.height * .8
+        }
+
+        ProgressBar {
+            id: progressConnecting
+            anchors.left: statusText.right
+            height : 20
+            anchors.right: parent.right
+            style:ProgressBarStyle {
+                background: Rectangle {
+                    radius: 2
+                    color: "darkblue"
+                    border.color: "gray"
+                    border.width: 2
+                }
+                progress: Rectangle {
+                    color: "lightsteelblue"
+                    border.color: "steelblue"
+                    Item {
+                            anchors.fill: parent
+                            anchors.margins: 1
+                            visible: control.indeterminate
+                            clip: true
+                            Row {
+                                Repeater {
+                                    Rectangle {
+                                        color: index % 2 ? "steelblue" : "lightsteelblue"
+                                        width: 20 ; height: control.height
+                                    }
+                                    model: control.width / 20 + 2
+                                }
+                                XAnimator on x {
+                                    from: 0 ; to: -40
+                                    loops: Animation.Infinite
+                                    running: control.indeterminate
+                                }
+                            }
+                        }
+                }
+            }
+            indeterminate: true
+            visible: busyRect.visible
+            anchors.verticalCenter: parent.verticalCenter
         }
     }
 }

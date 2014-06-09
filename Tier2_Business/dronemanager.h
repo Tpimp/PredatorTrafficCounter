@@ -9,6 +9,7 @@ class DroneManager : public QObject
     Q_OBJECT
 public:
     explicit DroneManager(QQmlContext * context,QObject *parent = 0 );
+    void createKnownDroneList(QString filename);
     void readKnownDroneList(QString filename);
     void saveKnownDroneList(QString filename);
     QList<QObject *> getDroneList(){ return mDroneList; }

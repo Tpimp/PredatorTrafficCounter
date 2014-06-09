@@ -1,5 +1,5 @@
-#ifndef VIDEOTRANSFERMANAGER_H
-#define VIDEOTRANSFERMANAGER_H
+#ifndef FILETRANSFERMANAGER_H
+#define FILETRANSFERMANAGER_H
 
 #include <QObject>
 #include <QHostInfo>
@@ -13,16 +13,17 @@ enum TransferState
     CONNECTED,
     RECEIVING_LIST,
     RECEIVING_INFO,
+    RECEIVING_THUMBNAIL,
     RECEIVING_VIDEO,
     FINISHED_RECEIVING
 };
 
-class VideoTransferManager : public QObject
+class FileTransferManager : public QObject
 {
     Q_OBJECT
 public:
-    explicit VideoTransferManager(QObject *parent = 0);
-    ~VideoTransferManager();
+    explicit FileTransferManager(QObject *parent = 0);
+    ~FileTransferManager();
     void clearConnection();
 signals:
 
@@ -40,7 +41,8 @@ public slots:
     void connectionLost();
     void failedToConnectToHost();
     void fetchVideoListFromServer();
-    void fetchVideoFromServer(QString video_name,qint64 expected_file_size);
+    void fetchThumbnailFromServer(QString video_name);
+    void fetchVideoFromServer(QString video_name);
     void fetchVideoInfoFromServer(QString video_name);
     void readData();
     void readFinishing();

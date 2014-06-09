@@ -5,7 +5,7 @@
 #include <Tier2_Business/videosourcedataobject.h>
 #include <QStringList>
 #include <QQmlContext>
-#include "Tier2_Business/videotransfermanager.h"
+#include "Tier2_Business/filetransfermanager.h"
 #include <QTimer>
 
 /****************************************************************
@@ -19,7 +19,7 @@ class VideoManager : public QObject
 
 public:
     explicit VideoManager(QString &video_directory,QQmlContext * context,
-                          VideoTransferManager* video_manager, QObject *parent = 0);
+                          FileTransferManager* video_manager, QObject *parent = 0);
     VideoSourceDataObject* getVideoObject(QString video_name);
     ~VideoManager();
     Q_INVOKABLE void fetchAllVideoInfo();
@@ -43,7 +43,7 @@ private:
     QList<QObject *>                    mVideoObjects;
     QString                             mVideoDirectory;
     QQmlContext                         *mContext = nullptr;
-    VideoTransferManager                *mTransferManager;
+    FileTransferManager                 *mTransferManager;
     bool                                mFetchingAll = false;
     int                                 mCurrentIndex;
 };

@@ -18,7 +18,7 @@ class SettingsManager : public QObject
 public:
     // CTOR
     explicit SettingsManager(QObject *parent = 0, QString video_directory = "", bool size_override = false,
-                             int window_width = 0, int window_height = 0, QString last_connected = "", QString drone_list = "" );
+                             int window_width = 0, int window_height = 0, QString last_connected = "", QString drone_list = "KnownDrones.txt" );
     // DTOR
     ~SettingsManager();
     // getters

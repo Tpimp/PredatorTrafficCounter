@@ -1,9 +1,9 @@
-#include "videotransfermanager.h"
+#include "filetransfermanager.h"
 #include <QHostAddress>
 #include <QList>
 #include <QStringList>
 #include <QFile>
-#include "Tier2_Business/videowritethread.h"
+#include "Tier2_Business/filewritethread.h"
 #include "Tier2_Business/videosourcedataobject.h"
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -16,21 +16,21 @@
 #include <QBuffer>
 #include <QImageWriter>
 
-VideoTransferManager::VideoTransferManager(QObject *parent) :
+FileTransferManager::FileTransferManager(QObject *parent) :
     QObject(parent), mHostInfo(QHostInfo()), mState(IDLE),
     mVideoDirectory(QDir::homePath()), mWatchdogTimer(this)
 {
     mSocket.setReadBufferSize(80000000);
     connect(&mSocket,SIGNAL(connected()),this,SLOT(connectedToHost()));
     connect(&mSocket,SIGNAL(readyRead()),this,SLOT(readData()));
-    connect(&mWatchdogTimer, &QTimer::timeout, this, &VideoTransferManager::failedToConnectToHost);
+    connect(&mWatchdogTimer, &QTimer::timeout, this, &FileTransferManager::failedToConnectToHost);
     connect(&mSocket,SIGNAL(disconnected()),this,SLOT(connectionLost()));
     connect(&mSocket,SIGNAL(readChannelFinished()),this,SLOT(readFinishing()));
 }
 
 
 
-void VideoTransferManager::attemptConnectionToHost(QString host_ip, int port)
+void FileTransferManager::attemptConnectionToHost(QString host_ip, int port)
 {
     qDebug() << host_ip << port;
     // set watchdog for one minute
@@ -40,14 +40,14 @@ void VideoTransferManager::attemptConnectionToHost(QString host_ip, int port)
 
 }
 
-void VideoTransferManager::connectedToHost()
+void FileTransferManager::connectedToHost()
 {
     mWatchdogTimer.stop();
     emit connectedForTransfer();
 }
 
 
-void VideoTransferManager::checkConnectionReady()
+void FileTransferManager::checkConnectionReady()
 {
     if(mSocket.state() == QTcpSocket::UnconnectedState)
        mSocket.connectToHost(mSocket.peerAddress(),8889);
@@ -55,20 +55,33 @@ void VideoTransferManager::checkConnectionReady()
        mSocket.open(QIODevice::ReadWrite);
 }
 
-void  VideoTransferManager::connectionLost()
+void  FileTransferManager::connectionLost()
 {
     emit connectionFailed();
     checkConnectionReady();
 }
 
-void VideoTransferManager::failedToConnectToHost()
+void FileTransferManager::failedToConnectToHost()
 {
     mSocket.disconnectFromHost();
     mSocket.close();
     emit connectionFailed();
 }
 
-void VideoTransferManager::fetchVideoListFromServer()
+void FileTransferManager::fetchThumbnailFromServer(QString video_name)
+{
+
+    mTransferItemName = video_name;
+    FileWriteThread* thumbnailthread(new FileWriteThread(this,
+                                                     mHostInfo.addresses()[0],
+                                                     mHostPort,
+                                                     video_name));
+
+    mState = RECEIVING_THUMBNAIL;
+
+}
+
+void FileTransferManager::fetchVideoListFromServer()
 {
     checkConnectionReady();
     QJsonDocument doc;
@@ -89,19 +102,19 @@ void VideoTransferManager::fetchVideoListFromServer()
 
 }
 
-void    VideoTransferManager::fetchVideoFromServer(QString video_name,qint64 expected_file_size)
+void  FileTransferManager::fetchVideoFromServer(QString video_name)
 {
     mTransferItemName = video_name;
-    VideoWriteThread* videothread(new VideoWriteThread(this,
-                                                           mHostInfo.addresses()[0],
-                                                           mHostPort,
-                                                           video_name,
-                                                           expected_file_size));
+    FileWriteThread* videothread(new FileWriteThread(this,
+                                                     mHostInfo.addresses()[0],
+                                                     mHostPort,
+                                                     video_name));
     //connect()
     mState = RECEIVING_VIDEO;
 }
 
-void  VideoTransferManager::fetchVideoInfoFromServer(QString video_name)
+
+void  FileTransferManager::fetchVideoInfoFromServer(QString video_name)
 {
 
     checkConnectionReady();
@@ -139,7 +152,7 @@ void  VideoTransferManager::fetchVideoInfoFromServer(QString video_name)
 }
 
 
-void VideoTransferManager::processMessage()
+void FileTransferManager::processMessage()
 {
 
     switch(mState)
@@ -173,23 +186,26 @@ void VideoTransferManager::processMessage()
             // Get the Video name and info
             QJsonValue  name(object["VideoName"]);
             QJsonValue  info(object["VideoInfo"]);
-            QJsonValue  thumb(object["VideoThumb"]);
-            QVariant    varthumb(thumb.toVariant());
-            QByteArray ba(varthumb.toByteArray());
-            QImage image(QSize(1280,720),QImage::Format_ARGB32);
-            image.loadFromData(ba,"PNG");
-            QImageWriter  imwriter(QDir::homePath()+"\\Videos\\thumbnail7.png");
-            qDebug() << QDir::homePath()+"\\Videos\\thumbnail.png";
+
+            //QVariant    varthumb(thumb.toVariant());
+            //QByteArray ba(varthumb.toByteArray());
+            //qDebug() << "        IMAGE            "<<  ba;
+           /* QFile image(QDir::homePath()+"\\Videos\\thumbnail7.png");
+            image.open(QFile::WriteOnly);
+            image.write(ba);
+            image.close();*/
+            //QImageWriter  imwriter(QDir::homePath()+"\\Videos\\thumbnail7.png");
+            //qDebug() << QDir::homePath()+"\\Videos\\thumbnail.png";
             //qDebug() << image;
             //imwriter.
-            if(imwriter.write(image))
+            /*if(!imwriter.write(image))
             {
                 qDebug() << "Failed to save thumbnail.";
             }
             else
             {
                 qDebug() << "Saved the file off correctly";
-            }
+            }*/
 
             // notify the listening objects that the video info was recieved
             // If the JSON Values are not strings they will instead return the error string
@@ -197,6 +213,7 @@ void VideoTransferManager::processMessage()
                                    info.toString("Info Not A String Error") );
             break;
         }
+        case RECEIVING_THUMBNAIL:{qDebug() << "Error? Should be in transfer thread...";break;}
         case RECEIVING_VIDEO: {qDebug() << "Error? Should be in transfer thread...";break;}
         case FINISHED_RECEIVING: {break;}
         default: {qDebug() << "Unknown Message " << mIncomingMessage; break;}
@@ -205,7 +222,7 @@ void VideoTransferManager::processMessage()
 }
 
 
-void  VideoTransferManager::readData()
+void  FileTransferManager::readData()
 {
     mIncomingMessage.append(mSocket.readAll());
     int index(-1);
@@ -224,7 +241,7 @@ void  VideoTransferManager::readData()
 }
 
 
-void VideoTransferManager::readFinishing()
+void FileTransferManager::readFinishing()
 {
     // channel or socket is closing
     mIncomingMessage.append(mSocket.readAll());
@@ -236,13 +253,13 @@ void VideoTransferManager::readFinishing()
 
 
 
-void VideoTransferManager::videoDownloadFinished(QString name)
+void FileTransferManager::videoDownloadFinished(QString name)
 {
         //Clean up and exit the VideoWriter Thread
     emit downloadFinished(name);
 }
 
-VideoTransferManager::~VideoTransferManager()
+FileTransferManager::~FileTransferManager()
 {
     mSocket.flush();
     mSocket.disconnectFromHost();

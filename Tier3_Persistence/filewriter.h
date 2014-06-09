@@ -5,12 +5,12 @@
 #include <QTcpSocket>
 #include <QBuffer>
 #include <QFile>
-#include "Tier2_Business/videotransfermanager.h"
-class VideoWriter : public QObject
+#include "Tier2_Business/filetransfermanager.h"
+class FileWriter : public QObject
 {
     Q_OBJECT
 public:
-    explicit VideoWriter(VideoTransferManager *parent, QString filepath_out, QTcpSocket &socket, qint64 expect_file_size);
+    explicit FileWriter(FileTransferManager *parent, QString filepath_out, QTcpSocket &socket);
 
 signals:
     void fileTransferComplete();
@@ -21,11 +21,11 @@ public slots:
 private:
     QString               mFilePath;
     QTcpSocket           &mSocket;
-    QFile                 mVideoOut;
+    QFile                 mFileOut;
     QBuffer               mBuffer;
     qint64                mExpectedFileSize;
     qint64                mBytesWritten;
-    VideoTransferManager* mParent;
+    FileTransferManager*  mParent;
 
 };
 

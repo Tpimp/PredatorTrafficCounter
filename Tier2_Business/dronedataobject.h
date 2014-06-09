@@ -3,7 +3,7 @@
 
 #include <QObject>
 
-class DroneObject : public QObject
+class DroneDataObject : public QObject
 {
     Q_OBJECT
     // declare properties for exposure to QML
@@ -13,7 +13,7 @@ class DroneObject : public QObject
     Q_PROPERTY(QString drone_type READ droneType WRITE setDroneType NOTIFY droneTypeChanged)
 
 public: 
-    explicit DroneObject(QObject *parent = 0, QString drone_name = "", QString drone_owner = "",
+    explicit DroneDataObject(QObject *parent = 0, QString drone_name = "", QString drone_owner = "",
                           QString drone_ip = "", QString drone_type = "" );
 
     // Drone Set Methods

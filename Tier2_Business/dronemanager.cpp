@@ -1,18 +1,41 @@
 #include "dronemanager.h"
 #include <QFile>
-#include "Tier2_Business/droneobject.h"
+#include "Tier2_Business/dronedataobject.h"
 #include <QStringList>
 #include <QDebug>
 #include <QVariant>
+#include <QDir>
+
 DroneManager::DroneManager(QQmlContext * context, QObject *parent) :
     QObject(parent), mContext(context)
 {
 }
 
 
+void DroneManager::createKnownDroneList(QString filename)
+{
+
+    qDebug() << "Create Known DroneList file -> " << filename;
+
+    QFile file(filename);
+
+    if(!file.exists())
+    {
+        qDebug() << "Did not find file " << filename;
+        saveKnownDroneList(filename);
+    }
+    else
+    {
+        qDebug() << "Did find file" << filename << "!";
+    }
+}
+
+
 void DroneManager::readKnownDroneList(QString filename)
 {
     QFile known_drone_list(filename);
+    if(!known_drone_list.exists())
+        createKnownDroneList(filename);
     QString file_contents;
     known_drone_list.open(QFile::ReadOnly);
     file_contents.append(known_drone_list.readAll());
@@ -26,7 +49,7 @@ void DroneManager::readKnownDroneList(QString filename)
             variable_lines.append(line);
         }
     }
-    DroneObject * object;
+    DroneDataObject * object;
     foreach( QString variable, variable_lines)
     {
         if(variable.size() < 8)
@@ -40,7 +63,7 @@ void DroneManager::readKnownDroneList(QString filename)
         {
             case 'N':
             {
-                object = new DroneObject(this,setting_value);
+                object = new DroneDataObject(this,setting_value);
                 break;
             }
             case 'O':
@@ -61,6 +84,8 @@ void DroneManager::readKnownDroneList(QString filename)
             }
             default:
             {
+                qDebug() << "Error Bad Variable recieved in drone manager from " << filename
+                         << "\n" << variable;
                 break;
             }
         }
@@ -87,7 +112,7 @@ void DroneManager::saveKnownDroneList(QString filename)
 
     foreach( QObject* drone, mDroneList)
     {
-        DroneObject * drone_ptr(reinterpret_cast<DroneObject *>(drone));
+        DroneDataObject * drone_ptr(reinterpret_cast<DroneDataObject *>(drone));
         known_drone_list.write(QString("Drone Name = \"" + drone_ptr->droneName() + "\"\r\n").toLocal8Bit());
         known_drone_list.write(QString("Drone Owner = \"" + drone_ptr->droneOwner()+ "\"\r\n").toLocal8Bit());
         known_drone_list.write(QString("Drone IP = \"" + drone_ptr->droneIP()+ "\"\r\n").toLocal8Bit());
@@ -101,7 +126,7 @@ DroneManager::~DroneManager()
 {
     while(!mDroneList.isEmpty())
     {
-        DroneObject* drone_ptr(reinterpret_cast<DroneObject *>(mDroneList.takeLast()));
+        DroneDataObject* drone_ptr(reinterpret_cast<DroneDataObject *>(mDroneList.takeLast()));
         delete drone_ptr;
     }
 

@@ -105,6 +105,16 @@ void SettingsManager::saveSettingsToFile(const QString& filename)
 {
     QFile settings_file(filename);
 
+    QDir config_dir(filename);
+    if(!config_dir.exists(config_dir.absoluteFilePath(filename)))
+    {
+        QString abs_path(config_dir.absoluteFilePath(filename));
+        int index_last_dir = abs_path.lastIndexOf(QDir::separator());
+        abs_path = abs_path.remove(index_last_dir,abs_path.size()-1);
+        qDebug() <<"Creating path: " << abs_path;
+        config_dir.mkpath(abs_path);
+    }
+
     settings_file.open(QFile::WriteOnly);
 
     // write the header

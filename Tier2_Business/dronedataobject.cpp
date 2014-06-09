@@ -1,6 +1,6 @@
-#include "droneobject.h"
+#include "dronedataobject.h"
 
-DroneObject::DroneObject(QObject *parent, QString drone_name, QString drone_owner,
+DroneDataObject::DroneDataObject(QObject *parent, QString drone_name, QString drone_owner,
                          QString drone_ip,QString drone_type ) :
     QObject(parent),
     mDroneName(drone_name),

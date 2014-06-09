@@ -1,20 +1,20 @@
-#ifndef VIDEOWRITETHREAD_H
-#define VIDEOWRITETHREAD_H
+#ifndef FILEWRITETHREAD_H
+#define FILEWRITETHREAD_H
 #include <QThread>
 #include <QHostAddress>
 #include <QByteArray>
 #include <QString>
 
-class VideoWriteThread : public QThread
+class FileWriteThread : public QThread
 {
     Q_OBJECT
 public:
 
-    explicit VideoWriteThread(QObject *parent, QHostAddress address, int port, QString filename,qint64 expected_size);
+    explicit FileWriteThread(QObject *parent, QHostAddress address, int port, QString filename);
     void run();
 
 signals:
-    void finishedTransferingVideo(QString name);
+    void finishedTransferingFile(QString name);
 
 public slots:
 
