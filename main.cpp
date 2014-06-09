@@ -11,6 +11,7 @@
 #include <QQmlApplicationEngine>
 #include "Tier3_Persistence/settingsmanager.h"
 #include "Tier2_Business/dronemanager.h"
+#include "Tier3_Persistence/databasemanager.h"
 int main(int argc, char *argv[])
 {
   //  QApplication app(argc, argv);
@@ -55,7 +56,7 @@ int main(int argc, char *argv[])
 
     // TODO: find a better method of asking the user where to store their settings
     #if defined(Q_OS_ANDROID)
-        application_directory_path = (QDir::rootPath()+"sdcard//" + "com.predator.trafficcounter/");
+        application_directory_path = (QDir::rootPath()+"sdcard//Predator Traffic Counter//");
     #elif defined(Q_OS_WIN)
         QDir directory_config(app.applicationDirPath());
         directory_config.cdUp();
@@ -84,6 +85,8 @@ int main(int argc, char *argv[])
     QString drone_file_location(config_dir  + "KnownDrones.txt");
     drone_manager.readKnownDroneList(drone_file_location);
     // add the VideoTransferManager and VideoManagers tothe root object
+    QString      db(application_directory_path + "//Traffic.db");
+    DatabaseManager   database_manager(db);
 
     // add external variable references to QMLEngine
     engine.rootContext()->setContextProperty("ScreenWidth",screen_width);

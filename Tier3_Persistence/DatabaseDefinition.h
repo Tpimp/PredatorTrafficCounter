@@ -9,7 +9,7 @@
 * source for all database modifications
 **********************************************************************************/
 
-const static QString DATABASE_NAME = "Traffic.db";
+//const static QString DATABASE_NAME = "Traffic.db";
 const static int DATABASE_VERSION = 3;
 
 //Table Names

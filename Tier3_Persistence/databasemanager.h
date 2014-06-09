@@ -11,7 +11,7 @@
 class DatabaseManager
 {
     public:
-        DatabaseManager();
+        DatabaseManager(QString database_name);
 
 
     private:

@@ -1,11 +1,11 @@
 #include "databasemanager.h"
 
-DatabaseManager::DatabaseManager()
+DatabaseManager::DatabaseManager(QString database_name)
 {
     //database initialization code
     mDriverName = "QSQLITE";
     mDatabase = QSqlDatabase::addDatabase(mDriverName);
-    mDatabase.setDatabaseName(DATABASE_NAME);
+    mDatabase.setDatabaseName(database_name);
     mDatabase.setHostName("localhost");
     mDatabase.open();
     if (mDatabase.isOpen() && mDatabase.isValid())
