@@ -1,6 +1,6 @@
 TEMPLATE = app
 
-QT += qml quick widgets
+QT += qml quick widgets sql
 
 
 
@@ -16,7 +16,8 @@ SOURCES += main.cpp \
     Tier3_Persistence/filewriter.cpp \
     Tier2_Business/bicycledataobject.cpp \
     Tier2_Business/vehicledataobject.cpp \
-    Tier2_Business/dronedataobject.cpp
+    Tier2_Business/dronedataobject.cpp \
+    Tier3_Persistence/databasemanager.cpp
 
 RESOURCES += qml.qrc
 
@@ -54,5 +55,7 @@ HEADERS += \
     Tier3_Persistence/filewriter.h \
     Tier2_Business/bicycledataobject.h \
     Tier2_Business/vehicledataobject.h \
-    Tier2_Business/dronedataobject.h
+    Tier2_Business/dronedataobject.h \
+    Tier3_Persistence/DatabaseDefinition.h \
+    Tier3_Persistence/databasemanager.h
 
