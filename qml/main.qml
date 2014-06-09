@@ -26,11 +26,10 @@ ApplicationWindow {
                     anchors.verticalCenter: parent.verticalCenter
                 }
 
-                Rectangle {
-                    id: greenScreen
+				TrafficCountView {
+					id: trafficView
                     height: appWindow.height
-                    width: appWindow.width
-                    color: "red"
+					width: appWindow.width
                     anchors.verticalCenter: parent.verticalCenter
                 }
         }
@@ -59,7 +58,7 @@ ApplicationWindow {
 
         }
         // perform animation on x
-        NumberAnimation on contentX { running:false; id:slideRight; to: greenScreen.x; duration: 200  }
+		NumberAnimation on contentX { running:false; id:slideRight; to: trafficView.x; duration: 200  }
         NumberAnimation on contentX { running:false; id:slideLeft; to: 0; duration: 200  }
     }
 

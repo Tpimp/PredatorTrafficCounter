@@ -4,6 +4,7 @@
         <file>qml/ConnectView.qml</file>
         <file>qml/DroneItem.qml</file>
         <file>qml/SettingsView.qml</file>
+        <file>qml/TrafficCountView.qml</file>
     </qresource>
     <qresource prefix="/images">
         <file>predatordrone.png</file>
