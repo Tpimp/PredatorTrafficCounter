@@ -52,68 +52,77 @@ Rectangle
 		anchors.fill: parent
 		height: parent.height
 		width: parent.width
-		//source: "background.png"
+        source: "qrc:/images/TrafficBackground.png"
 	}
 
-	Rectangle
-	{
-		id: startSessionButton
-		color: "blue"
-		radius: 5
-		border.width: 4
-		border.color: "gold"
-		width: parent.width * 0.33
-		height: parent.height * 0.15
-		anchors.bottom: reviewSessionsButton.top
-		anchors.bottomMargin: parent.height * 0.1
-		anchors.right: parent.right
-		anchors.rightMargin: 10
+    Rectangle{
+        id:startSessionButton
+        width:  parent.width/3
+        height: parent.height/10
+        anchors.bottom: reviewSessionsButton.top
+        anchors.bottomMargin: parent.height * .1
+        anchors.right: parent.right
+        anchors.rightMargin: 10
+        color: "blue"
+        border.width: 2
+        border.color: "black"
+        anchors.margins: 4
+        radius: 2
+        visible: true
+        MouseArea{
+            anchors.fill: parent
+            onPressed: {
 
-		Text
-		{
-			anchors.centerIn: parent
-			text: "Start Session"
-			font.pixelSize: parent.height * 0.8
-		}
+            }
+            onReleased: {
 
-		NumberAnimation
-		{
-			id: startAnimationUp
-			property: startSessionButton.y
-			duration: 500
-			easing.type: Easing.OutBounce
-		}
-	}
+            }
+        }
 
-	Rectangle
-	{
-		id: reviewSessionsButton
-		color: "red"
-		radius: 5
-		border.width: 4
-		border.color: "yellow"
-		width: parent.width * 0.33
-		height: parent.height * 0.15
-		anchors.bottom: toolbarContainer.top
-		anchors.bottomMargin: parent.height * 0.1
-		anchors.right: parent.right
-		anchors.rightMargin: 10
+        Text{
+            anchors.fill: parent
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+            font.pixelSize: parent.height * .8
+            color: "yellow"
+            text: "Start Session"
+        }
+    }
 
-		Text
-		{
-			anchors.centerIn: parent
-			text: "Review Session"
-			font.pixelSize: parent.height * 0.8
-		}
+    Rectangle{
+        id:reviewSessionsButton
+        width:  parent.width/3
+        height: parent.height/10
+        anchors.bottom: toolbarContainer.top
+        anchors.bottomMargin: parent.height * 0.1
+        anchors.right: parent.right
+        anchors.rightMargin: 10
+        color: "blue"
+        border.width: 2
+        border.color: "black"
+        anchors.margins: 4
+        radius: 2
+        visible: true
+        MouseArea{
+            anchors.fill: parent
+            onPressed: {
 
-		NumberAnimation
-		{
-			id: reviewAnimationUp
-			property: reviewSessionsButton.y
-			duration: 500
-			easing.type: Easing.OutBounce
-		}
-	}
+            }
+            onReleased: {
+
+            }
+        }
+
+        Text{
+            anchors.fill: parent
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+            font.pixelSize: parent.height * .8
+            color: "yellow"
+            text: "Review Sessions"
+        }
+    }
+
 
 	Rectangle
 	{
@@ -130,16 +139,10 @@ Rectangle
 		Text
 		{
 			anchors.centerIn: parent
-			text: "Toolbar"
-			font.pixelSize: parent.height * 0.8
+            text: "I am Broken"
+            font.pixelSize: parent.height *.9
 		}
 
-		NumberAnimation
-		{
-			id: toolbarAnimationUp
-			property: toolbarContainer.y
-			duration: 500
-			easing.type: Easing.OutBounce
-		}
+
 	}
 }
